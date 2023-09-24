@@ -13,7 +13,7 @@ from services.tempCodeRunnerFile import get_release
 
 from pymongo import MongoClient
 
-collection = MongoClient("mongodb://0.tcp.in.ngrok.io:18176")['pixel']['videos']
+collection = MongoClient("mongodb+srv://SIH2023:SIH2023@cluster0.nqzxnng.mongodb.net/")['pixel']['videos']
 
 cloudinary.config(
     cloud_name="dsztz2gsf",
@@ -26,7 +26,7 @@ cloudinary.config(
 from pydub import AudioSegment
 import zlib
 
-def generate_video_task(images,texts, video_prid,language="English"):
+def generate_video_task(images,texts, video_prid,ministry,ReleaseHeading,language="English"):
     print("working1")
     print(language,"language")
     # Audio file 
@@ -46,7 +46,7 @@ def generate_video_task(images,texts, video_prid,language="English"):
     # collection.update_one({"prid":video_prid},{"$set":{"status":"Analyzing Sound Data"}})
     print("before audio")
     print("working3")
-    url="https://e141-210-212-85-151.ngrok-free.app/text_to_audio"
+    url="https://text-to-audio.ashishkingdom.live/text_to_audio"
     print(audio_text)
     data={
       "count": 1,
@@ -65,6 +65,9 @@ def generate_video_task(images,texts, video_prid,language="English"):
     }
     print("working4")
     response=requests.post(url,json=data,headers=headers)
+    
+    audio_data=collection.update_one({"prid":video_prid},{"$set":{"status":"Audio data generated"}})
+
     print(response)
     print("working5")
     if response:
@@ -82,6 +85,8 @@ def generate_video_task(images,texts, video_prid,language="English"):
         #exit()
         return None
     print("working6")
+    audio_file=collection.update_one({"prid":video_prid},{"$set":{"status":"Audio file generated"}})
+
     net_time=0
     for audio in response.json()["audio"][:-1]:
         net_time+=audio["duration"]
@@ -93,14 +98,26 @@ def generate_video_task(images,texts, video_prid,language="English"):
     if len(images)!=0:
         length_of_image=duration/(len(images))
         image_frames=[]
+        url_list=[]
         image_duration=0
         # audio_count_image=0
         for image in images:
             image=ImageClip(image).resize((700,500)).set_position(('right','center')).set_start(image_duration).set_duration(length_of_image)
             image_duration+=length_of_image
+            image=image.crossfadein(2)
+            image=image.crossfadeout(2)
             # audio_count_image+=1
             image_frames.append(image)
-    
+        image_duration=0
+        for url in images:
+            # print(video_clip.size)
+            # print(data)
+            url_clip = TextClip("Source of image :-"+url,method="caption",fontsize=25, color='red',size=(1000,600),kerning=2).set_position((500,700))
+            # text_clip=fadeout.fadeout(text_clip,1)
+            url_clip=url_clip.set_start(image_duration).set_duration(length_of_image)
+            # start=start+response.json()["audio"][audio_count]["duration"]
+            image_duration+=length_of_image
+            url_list.append(url_clip)
     image=ImageClip("./services/75_logo.png")
     # extraImages=ImageClip('PMmodi.png')
 
@@ -114,12 +131,51 @@ def generate_video_task(images,texts, video_prid,language="English"):
     top_right_y = 0  # Position at the top
     print("working1")
     # extraImages=extraImages.set_position(('right','center')).set_duration(5)
-    image=image.set_position((top_right_x,top_right_y)).set_duration(net_time)
+    image=image.set_position((top_right_x,top_right_y)).set_duration(net_time).resize((250,150))
     print("working2")
 
     # Create an array of text clips
 
-    heading=TextClip("Heading from the house of Prime minister",fontsize=60,color='red',bg_color='rgb(238, 231, 233)').set_position(('left','top')).set_duration(net_time).margin(left=10,top=10)
+    # heading=TextClip("Heading from the house of Prime minister",fontsize=60,color='red',bg_color='rgb(238, 231, 233)').set_position(('left','top')).set_duration(net_time).margin(left=10,top=10)
+    print(ministry)
+    heading=TextClip(ministry[0],fontsize=50,color='black',bg_color='rgba(212, 199, 206, 0.37)').set_duration(net_time).margin(left=10,top=10,color=(255,255,255),opacity=0)
+    def translate(t):
+    # Start and end positions of the text
+        start_pos = (1000,0)
+        end_pos = (0,0)
+        # Calculate x and y positions based on elapsed time and total duration
+        # Linear interpolation is used to determine the position of the text at any given time
+        x = int(start_pos[0] + t/2 * (end_pos[0] - start_pos[0]))
+        y = int(start_pos[1] + t/2 * (end_pos[1] - start_pos[1]))
+        if x>0:
+            return(x,y)
+
+        return (0,0)
+    
+# ====================================================================
+    heading=heading.set_position(translate)
+    heading=heading.crossfadein(4)
+# Sub heading animation
+    subhead=ReleaseHeading.split(" ")
+
+    sub_heading=TextClip(ReleaseHeading,fontsize=20,color='black',bg_color='rgba(212, 199, 206, 0.37)').set_duration(net_time)
+    def sub_translate(t):
+    # Start and end positions of the text
+        start_pos = (1200,heading.size[1]+10)
+        end_pos = (0,heading.size[1]+10)
+        # Calculate x and y positions based on elapsed time and total duration
+        # Linear interpolation is used to determine the position of the text at any given time
+        x = int(start_pos[0] + t/2 * (end_pos[0] - start_pos[0]))
+        y = int(start_pos[1] + t/2 * (end_pos[1] - start_pos[1]))
+        if x>0:
+            return(x,y)
+
+        return (0,heading.size[1]+10)
+    sub_heading=sub_heading.set_position(sub_translate)
+    sub_heading=sub_heading.crossfadein(4)
+# ====================================================================
+    heading=heading.set_position(translate)
+   
 
     text_clips = []
     print("working3")
@@ -149,7 +205,7 @@ def generate_video_task(images,texts, video_prid,language="English"):
     print("working4")
     for data in texts:
         print(data)
-        text_clip = TextClip(data['text'], fontsize=30, color='red',font="C:/Users/Abro0058T/AppData/Local/Microsoft/Windows/Fonts/arial-unicode-ms.ttf")
+        text_clip = TextClip(data['text'],method="caption",fontsize=30, color='red',size=(1000,600),kerning=2,font="C:/Users/Abro0058T/AppData/Local/Microsoft/Windows/Fonts/arial-unicode-ms.ttf").margin(left=20,color=(255,255,255),opacity=0)
         text_clip=text_clip.set_start(start,change_end=True)
         start=start+response.json()["audio"][audio_count]["duration"]
         print("working5")
@@ -157,22 +213,27 @@ def generate_video_task(images,texts, video_prid,language="English"):
         print("working6")
         audio_count+=1
         text_clip = text_clip.set_position(data["position"])
+        text_clip=text_clip.crossfadein(1).crossfadeout(1)
         text_clips.append(text_clip)
     # Composite the text clips onto the video clip
 
     # update video status to 'Analysing & Generating Video'
-    # collection.update_one({"prid":video_prid},{"$set":{"status":"Analysing & Generating Video"}})
+    # collection.update_one({"prid":video_prid},{"$set":{"status":"Analysing & Generating Video"}}
 
     if len(images)!=0:
-        video_with_text = CompositeVideoClip([video_clip,image,heading] + text_clips+image_frames)
+        video_with_text = CompositeVideoClip([video_clip,image,heading,sub_heading] + text_clips+image_frames)
     else:
-        video_with_text = CompositeVideoClip([video_clip,image,heading] + text_clips)
+        video_with_text = CompositeVideoClip([video_clip,image,heading,sub_heading] + text_clips)
 
+    video_data=collection.update_one({"prid":video_prid},{"$set":{"status":"Generating Video"}})
     # update video status to 'Uploading Video'
     # collection.update_one({"prid":video_prid},{"$set":{"status":"Uploading Video"}})
 
     # Write the final video to a file
+
     video_with_text.write_videofile("output_video.mp4")
+    final_video=collection.update_one({"prid":video_prid},{"$set":{"status":"Video generated"}})
+
     print("video created")
     upload_result=cloudinary.uploader.upload("output_video.mp4",resource_type="video")
     print("Video uploaded to Cloudinary:", upload_result["secure_url"])
@@ -218,9 +279,10 @@ def convertData(id):
     # Example usage:
     for text in relese_data["paragraph"]:
         azure_text=text.replace("\n", "").replace("\r", "")
-        output_text = add_newline_every_n_words(text, 14)
+        output_text = add_newline_every_n_words(text, 210)
         if output_text.count("*") <1:
-            texts.append({'text':escape(output_text),"azure_text":escape(azure_text), "position": ('left','center')})
+            # texts.append({'text':escape(output_text),"azure_text":escape(azure_text), "position": ('left','center')})
+            texts.append({'text':escape(output_text),"azure_text":escape(output_text), "position": ('left','center')})
 
         # texts.append({'text':output_text.replace("’","'").replace('“','"').replace('”','"').replace('‘',"'"),"azure_text":azure_text.replace("’","'").replace('“','"').replace('”','"').replace('‘',"'"), "position": ('left','center')})
 
@@ -233,4 +295,12 @@ def convertData(id):
              images.append(image)
     print("images")
     print(images,texts)
-    return (images,texts) # desired format 
+    ministry=relese_data["ministry"],
+    releaseHeading=relese_data["releaseHeading"]
+    return (images,texts,ministry,releaseHeading)# desired format 
+
+# prid=1959465
+# images,texts,ministry,releaseHeading=convertData(prid)
+# print(ministry[0])
+
+# generate_video_task(images,texts,prid,ministry,releaseHeading)

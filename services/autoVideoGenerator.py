@@ -91,7 +91,7 @@ def addVideo(video_data,converted_data,latest_release_id):# runs only  when new 
 	# result=collection.insert_one({"prid":latest_release_id},{"$set":data})
 	data = VideoResponse(**data)
 	# insert video data so that it status can be changed during video generation
-	result=collection.insert_one(data.model_dump())
+	result=collection.update_one({"prid":latest_release_id},{"$set":data.model_dump()})
 	print("result",result)
 
 def addData(latest_release_id):
@@ -106,17 +106,18 @@ def addData(latest_release_id):
 def generate_video_from_prid(id):
 	# addData(latest_release_id)
 	converted_data=convertData(id) 
+	dadta_collected=collection.insert_one({"prid":id,"status":"Data collected"})
 	print("converted data")#get latest notice data and convert it into required format 
-	images,texts=converted_data
-	video_data=generate_video_task(images,texts, id) #convert to video and upload to cloudnary returns the url 
-	# addVideo(video_data,converted_data,id)  # add video to mongodb data base
+	images,texts,ministry,releaseHeading=converted_data
+	video_data=generate_video_task(images,texts,id,ministry,releaseHeading)#convert to video and upload to cloudnary returns the url 
+	addVideo(video_data,converted_data,id)  # add video to mongodb data base
 
 	return video_data # url of video 
 				
 def generate_video_from_edit(id,imageLists,language):
 	converted_data=convertData(id)
-	images,texts=converted_data
-	video_Data=generate_video_task(imageLists,texts,id,language)
+	images,texts,ministry,releaseHeading=converted_data
+	video_Data=generate_video_task(imageLists,texts,id,ministry,releaseHeading,language)
 	addVideo(video_Data,converted_data,id)# add video to mongo db database
 # print("hello")
 # latest_release_id=get_latest_release_id() # get latest notice prid

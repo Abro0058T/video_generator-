@@ -1,10 +1,10 @@
 from pydantic import BaseModel
 from typing import List,Dict
 
-class ImageInfo(BaseModel):
-    id: int
-    image: str
-    # tags: List[str] = None
+# class ImageInfo(BaseModel):
+#     # id: int
+#     image: str
+#     # tags: List[str] = None
 
 
 class VideoEditInfo(BaseModel):
@@ -12,7 +12,7 @@ class VideoEditInfo(BaseModel):
     prid:int
     Lang: str
     # voice_gender:str
-    Images: List[ImageInfo]
+    Images: List[str]
     # text_list: List[str] = None
 class TextInfo(BaseModel):
     text:str
