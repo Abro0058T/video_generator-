@@ -6,6 +6,7 @@ from urllib.request import urlopen, Request
 from services.tempCodeRunnerFile import get_latest_release_id,get_release
 from services.mainVideo2 import generate_video_task,convertData
 # from tempCodeRunnerFile import get_latest_release_id,get_release
+# from tempCodeRunnerFile import get_latest_release_id,get_release
 # from mainVideo2 import generate_video_task,convertData
 import pymongo
 from schemas import VideoResponse
@@ -124,7 +125,7 @@ def generate_video_from_edit(id,imageLists,language):
 # print(latest_release_id,"latest-release _id")
 
 
-latest_release_id=1958613
+# latest_release_id=1960334
 # addData(latest_release_id)
 # print("add data")
 # converted_data=convertData(1958613) #get latest notice data and convert it into required format

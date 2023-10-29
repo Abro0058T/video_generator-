@@ -221,9 +221,9 @@ def generate_video_task(images,texts, video_prid,ministry,ReleaseHeading,languag
     # collection.update_one({"prid":video_prid},{"$set":{"status":"Analysing & Generating Video"}}
 
     if len(images)!=0:
-        video_with_text = CompositeVideoClip([video_clip,image,heading,sub_heading] + text_clips+image_frames)
+        video_with_text = CompositeVideoClip([video_clip,image,heading,sub_heading] + text_clips+image_frames+url_list)
     else:
-        video_with_text = CompositeVideoClip([video_clip,image,heading,sub_heading] + text_clips)
+        video_with_text = CompositeVideoClip([video_clip,image,heading,sub_heading] + text_clips+url_list)
 
     video_data=collection.update_one({"prid":video_prid},{"$set":{"status":"Generating Video"}})
     # update video status to 'Uploading Video'
@@ -299,8 +299,8 @@ def convertData(id):
     releaseHeading=relese_data["releaseHeading"]
     return (images,texts,ministry,releaseHeading)# desired format 
 
-# prid=1959465
-# images,texts,ministry,releaseHeading=convertData(prid)
-# print(ministry[0])
+prid=1960334
+images,texts,ministry,releaseHeading=convertData(prid)
+print(ministry[0])
 
-# generate_video_task(images,texts,prid,ministry,releaseHeading)
+generate_video_task(images,texts,prid,ministry,releaseHeading)
